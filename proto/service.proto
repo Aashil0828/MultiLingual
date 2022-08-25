@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+option go_package = "./pb";
+
+message multiLingualRequest {
+    string text = 1;
+    string language = 2;
+}
+
+message multiLingualResponse {
+    string text_In_That_Language = 1;
+}
+
+
+service multiLingualService {
+    rpc translate (multiLingualRequest) returns (multiLingualResponse);
+}
