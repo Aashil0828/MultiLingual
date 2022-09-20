@@ -7,26 +7,22 @@ import (
 	"multilingual-new/pb/pb"
 	"multilingual-new/server"
 	"net"
+	"os"
 
+	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"google.golang.org/grpc"
 )
-
-const (
-	host     = "localhost"
-	port     = 5432
-	user     = "postgres"
-	password = "Akshah089#"
-	dbname   = "multilingual"
-)
-
 var db *sql.DB
 
 // This function will make a connection to the database only once.
 
 func init() {
-	var err error
-	psqlconn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
+	err := godotenv.Load(".env")
+	if err != nil {
+		log.Fatalf("could not load env: %v", err)
+	}
+	psqlconn := fmt.Sprintf("host=%v port=%v user=%v password=%v dbname=%v sslmode=disable", os.Getenv("DB_HOST"), os.Getenv("DB_PORT"), os.Getenv("DB_USER"), os.Getenv("DB_PASS"), os.Getenv("DB_NAME"))
 	db, err = sql.Open("postgres", psqlconn)
 
 	if err != nil {
