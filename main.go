@@ -1,51 +1,45 @@
 package main
 
 import (
-	"database/sql"
+	"context"
 	"fmt"
 	"log"
+	"multilingual-new/models"
 	"multilingual-new/pb/pb"
 	"multilingual-new/server"
 	"net"
 	"os"
 
+	"cloud.google.com/go/translate"
 	"github.com/joho/godotenv"
-	_ "github.com/lib/pq"
 	"google.golang.org/grpc"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
-var db *sql.DB
 
-// This function will make a connection to the database only once.
-
-func init() {
+func main() {
 	err := godotenv.Load(".env")
 	if err != nil {
 		log.Fatalf("could not load env: %v", err)
 	}
-	psqlconn := fmt.Sprintf("host=%v port=%v user=%v password=%v dbname=%v sslmode=disable", os.Getenv("DB_HOST"), os.Getenv("DB_PORT"), os.Getenv("DB_USER"), os.Getenv("DB_PASS"), os.Getenv("DB_NAME"))
-	db, err = sql.Open("postgres", psqlconn)
-
+	dsn := fmt.Sprintf("host=%v user=%v password=%v dbname=%v port=%v sslmode=disable", os.Getenv("DB_HOST"), os.Getenv("DB_USER"), os.Getenv("DB_PASS"), os.Getenv("DB_NAME"), os.Getenv("DB_PORT"))
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
-
-	if err = db.Ping(); err != nil {
-		panic(err)
+	db.AutoMigrate(&models.Language{}, &models.TextContent{}, &models.Translation{})
+	client, err := translate.NewClient(context.Background())
+	if err != nil {
+		log.Fatal(err)
 	}
-	// this will be printed in the terminal, confirming the connection to the database
-	fmt.Println("The database is connected")
-}
-
-func main() {
-	server := &server.Server{Db: db}
+	defer client.Close()
+	server := &server.MultiLingualServer{Db: db, Client: client}
 	grpcServer := grpc.NewServer()
 	pb.RegisterMultiLingualServiceServer(grpcServer, server)
-	listener, err := net.Listen("tcp", "0.0.0.0:8000")
+	listener, err := net.Listen("tcp", "0.0.0.0:50051")
 	if err != nil {
-		log.Fatalf("cannot start server : %v", err)
+		log.Fatal(err)
 	}
-	err = grpcServer.Serve(listener)
-	if err != nil {
-		log.Fatalf("cannot start server : %v", err)
-	}
+	log.Println("server started on port 50051")
+	grpcServer.Serve(listener)
 }

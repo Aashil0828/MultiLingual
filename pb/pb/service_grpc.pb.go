@@ -7,6 +7,7 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -19,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type MultiLingualServiceClient interface {
 	Translate(ctx context.Context, in *MultiLingualRequest, opts ...grpc.CallOption) (*MultiLingualResponse, error)
+	GetSupportedLanguages(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetSupportedLanguagesResponse, error)
 }
 
 type multiLingualServiceClient struct {
@@ -38,11 +40,21 @@ func (c *multiLingualServiceClient) Translate(ctx context.Context, in *MultiLing
 	return out, nil
 }
 
+func (c *multiLingualServiceClient) GetSupportedLanguages(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetSupportedLanguagesResponse, error) {
+	out := new(GetSupportedLanguagesResponse)
+	err := c.cc.Invoke(ctx, "/multiLingualService/GetSupportedLanguages", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MultiLingualServiceServer is the server API for MultiLingualService service.
 // All implementations must embed UnimplementedMultiLingualServiceServer
 // for forward compatibility
 type MultiLingualServiceServer interface {
 	Translate(context.Context, *MultiLingualRequest) (*MultiLingualResponse, error)
+	GetSupportedLanguages(context.Context, *emptypb.Empty) (*GetSupportedLanguagesResponse, error)
 	mustEmbedUnimplementedMultiLingualServiceServer()
 }
 
@@ -52,6 +64,9 @@ type UnimplementedMultiLingualServiceServer struct {
 
 func (UnimplementedMultiLingualServiceServer) Translate(context.Context, *MultiLingualRequest) (*MultiLingualResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Translate not implemented")
+}
+func (UnimplementedMultiLingualServiceServer) GetSupportedLanguages(context.Context, *emptypb.Empty) (*GetSupportedLanguagesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetSupportedLanguages not implemented")
 }
 func (UnimplementedMultiLingualServiceServer) mustEmbedUnimplementedMultiLingualServiceServer() {}
 
@@ -84,6 +99,24 @@ func _MultiLingualService_Translate_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MultiLingualService_GetSupportedLanguages_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MultiLingualServiceServer).GetSupportedLanguages(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/multiLingualService/GetSupportedLanguages",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MultiLingualServiceServer).GetSupportedLanguages(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // MultiLingualService_ServiceDesc is the grpc.ServiceDesc for MultiLingualService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -94,6 +127,10 @@ var MultiLingualService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "translate",
 			Handler:    _MultiLingualService_Translate_Handler,
+		},
+		{
+			MethodName: "GetSupportedLanguages",
+			Handler:    _MultiLingualService_GetSupportedLanguages_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

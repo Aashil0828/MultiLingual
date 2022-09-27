@@ -1,17 +1,38 @@
 syntax = "proto3";
 
+import "google/protobuf/empty.proto";
+
 option go_package = "./pb";
 
+message Language {
+    uint32 Id = 1;
+    string LanguageName = 2;
+}
+
+message TextContent {
+    uint32 Id = 1;
+    string Label = 2;
+}
+
 message multiLingualRequest {
-    string text = 1;
-    string language = 2;
+    uint32 LanguageId = 1;
+    repeated TextContent Data = 2;
 }
 
 message multiLingualResponse {
-    string text_In_That_Language = 1;
+    int32 Status = 1;
+    string Message = 2;
+    repeated TextContent Data = 3;
+}
+
+message GetSupportedLanguagesResponse{
+    int32 Status = 1;
+    string Message = 2;
+    repeated Language Data = 3;
 }
 
 
 service multiLingualService {
     rpc translate (multiLingualRequest) returns (multiLingualResponse);
+    rpc GetSupportedLanguages (google.protobuf.Empty) returns (GetSupportedLanguagesResponse);
 }
